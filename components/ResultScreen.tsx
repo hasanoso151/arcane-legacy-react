@@ -1,13 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { AnalysisResult } from '../types';
+import { AnalysisResult, Gender } from '../types';
 import html2canvas from 'html2canvas';
 
 interface ResultScreenProps {
   result: AnalysisResult;
   onRetry: () => void;
+  gender: Gender;
 }
 
-export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRetry }) => {
+export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRetry, gender }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
   const [showToast, setShowToast] = useState(false);
@@ -27,9 +28,12 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRetry }) =
     return () => window.removeEventListener("message", handler);
   }, []);
 
+  const localizedName = gender === 'MALE' ? result.archetype.name.male : result.archetype.name.female;
+  const localizedTitle = gender === 'MALE' ? result.archetype.title.male : result.archetype.title.female;
+
   // Simple copy text function as a robust sharing method
   const handleCopyText = () => {
-    const textToCopy = `أنالقب الأركاني هو: ${result.archetype.name} - ${result.archetype.title}\n\n${result.generatedText}\n\nاكتشف إرثك الآن في #كشف_الإرث_الأركاني`;
+    const textToCopy = `اللقب الأركاني هو: ${localizedName} - ${localizedTitle}\n\n${result.generatedText}\n\nاكتشف إرثك الآن في #كشف_الإرث_الأركاني`;
     // Attempt standard copy, might fail in iframe but keeping as fallback
     navigator.clipboard.writeText(textToCopy).then(() => {
       setCopyStatus('copied');
@@ -103,12 +107,12 @@ export const ResultScreen: React.FC<ResultScreenProps> = ({ result, onRetry }) =
         <div className="absolute inset-0 border border-arcane-gold/20 m-2 pointer-events-none rounded-sm"></div>
 
         <div className="relative z-10 text-center">
-          <div className="mb-2 text-arcane-goldDim font-display tracking-widest text-sm uppercase">تم كشف الرمز</div>
+          <div className="mb-2 text-arcane-goldDim font-serif text-sm">تم كشف الرمز</div>
           <h1 className="text-3xl md:text-4xl font-bold text-arcane-gold mb-2 font-serif drop-shadow-md">
-            {result.archetype.name}
+            {localizedName}
           </h1>
           <h2 className="text-xl text-arcane-dust mb-6 font-serif italic border-b border-arcane-700 pb-4 inline-block">
-            {result.archetype.title}
+            {localizedTitle}
           </h2>
 
           <div className="text-gray-200 font-serif leading-loose text-lg text-justify opacity-90 mb-8 whitespace-pre-wrap">

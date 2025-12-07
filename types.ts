@@ -1,3 +1,5 @@
+export type Gender = 'MALE' | 'FEMALE';
+
 export interface Option {
   id: string;
   text: string;
@@ -12,13 +14,20 @@ export interface Question {
 
 export interface Archetype {
   id: string;
-  name: string;
-  title: string; // e.g., "The Forgotten Seer"
+  name: {
+    male: string;
+    female: string;
+  };
+  title: {
+    male: string;
+    female: string;
+  };
   baseDescription: string;
 }
 
 export enum AppState {
   INTRO = 'INTRO',
+  GENDER_SELECT = 'GENDER_SELECT',
   QUIZ = 'QUIZ',
   LOADING = 'LOADING',
   RESULT = 'RESULT',

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { IntroScreen } from './components/IntroScreen';
+import { GenderScreen } from './components/GenderScreen';
 import { QuestionScreen } from './components/QuestionScreen';
 import { LoadingScreen } from './components/LoadingScreen';
 import { ResultScreen } from './components/ResultScreen';
-import { AppState, AnalysisResult, Question } from './types';
+import { AppState, AnalysisResult, Question, Gender } from './types';
 import { QUESTIONS } from './constants';
 import { calculateArchetype } from './utils/logic';
 import { generateArcaneAnalysis } from './services/geminiService';
@@ -14,6 +15,7 @@ const App: React.FC = () => {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [quizQuestions, setQuizQuestions] = useState<Question[]>([]);
+  const [gender, setGender] = useState<Gender>('MALE');
 
   const startQuiz = () => {
     // Select 5 random questions
@@ -21,9 +23,14 @@ const App: React.FC = () => {
     const selected = shuffled.slice(0, 5);
     setQuizQuestions(selected);
 
-    setAppState(AppState.QUIZ);
+    setAppState(AppState.GENDER_SELECT);
     setCurrentQuestionIndex(0);
     setAnswers({});
+  };
+
+  const handleGenderSelect = (selectedGender: Gender) => {
+    setGender(selectedGender);
+    setAppState(AppState.QUIZ);
   };
 
   const handleAnswer = async (optionId: string) => {
@@ -48,7 +55,7 @@ const App: React.FC = () => {
     // 2. Generate Text via Gemini
     // Ensure we wait at least 2.5 seconds for the "Dramatic Loading" effect required by PRD
     const startTime = Date.now();
-    const generatedText = await generateArcaneAnalysis(archetype, finalAnswers);
+    const generatedText = await generateArcaneAnalysis(archetype, finalAnswers, gender);
     const endTime = Date.now();
     const duration = endTime - startTime;
     const minLoadingTime = 2500;
@@ -78,6 +85,10 @@ const App: React.FC = () => {
         <IntroScreen onStart={startQuiz} />
       )}
 
+      {appState === AppState.GENDER_SELECT && (
+        <GenderScreen onSelect={handleGenderSelect} />
+      )}
+
       {appState === AppState.QUIZ && quizQuestions.length > 0 && (
         <QuestionScreen
           question={quizQuestions[currentQuestionIndex]}
@@ -92,7 +103,7 @@ const App: React.FC = () => {
       )}
 
       {appState === AppState.RESULT && result && (
-        <ResultScreen result={result} onRetry={resetApp} />
+        <ResultScreen result={result} onRetry={resetApp} gender={gender} />
       )}
     </div>
   );
